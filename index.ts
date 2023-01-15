@@ -2,26 +2,67 @@ import * as fs from "fs";
 import { debounce } from "debounce";
 import chokidar from "chokidar";
 
-interface LoadCertsOptions {
+/**
+ * @public
+ * Load certificates from files and watch for changes.
+ * @param debouncedTime - Debounce time in ms.
+ * @param timeout - Timeout for overall loading.
+ * */
+export interface LoadCertsOptions {
   debounceTime?: number;
   timeout?: number;
 }
 
+/**
+ * Default debounce time in ms.
+ * 
+ * If multiple filesystem events are occured during this time
+ * only one callback will be called with the final value.
+ * @public
+ */
 export const DEFAULT_DEBOUNCE_MS = 50;
+
+/**
+ * Default timeout in ms.
+ * 
+ * Represents overall timeout. If all the files are not loaded within
+ * this time frame, callback will be called with an Error as th first
+ * argument.
+ * 
+ * @public
+ */
 export const DEFAULT_TIMEOUT_MS = 300;
 
 /**
+ * @public
  * Load certificates from files and watch for changes.
  * @param certFiles - Object with paths to certificate files.
  * @param cb - Callback to call when certificates are loaded or changed. If
  * some certificates fail loading, or timeout has elapsed, cb will be called
  * with null.
  * @param opts - Options.
- * @param opts.debounceTime - Debounce time for callback, cb will be called
+ * @param debounceTime - Debounce time for callback, cb will be called
  *  debouncedTime ms after the last filesystem activity.
- * @param opts.timeout - Timeout for overall loading.
- * @returns Promise that resolves to true when certificates are loaded.
- * @throws Error when some certificates fail loading.
+ * @param timeout - Timeout for overall loading.
+ * 
+ * 
+ * @example
+ * ```ts
+ * import { load } from "certs-watch";
+ * load({
+ *    key: "/path/to/key.pem",
+ *    cert: "/path/to/cert.pem",
+ *    ca: "/path/to/ca.pem"
+ *  }, (err, certs) => {
+ *    if (err) {
+ *       console.error(err);
+ *       return;
+ *    }
+ *    if (certs) {
+ *      console.log("Certificates loaded");
+ *    }
+ * })
+ * ```
  */
 export function load<T extends Record<string, string>>(
   certFiles: T,
@@ -67,16 +108,32 @@ export function load<T extends Record<string, string>>(
 }
 
 import * as tls from "tls";
-export type SetSecureContextFn = tls.Server["setSecureContext"];
 
 /**
+ * @public
+ */
+export type SetSecureContextInterface = {
+  setSecureContext: tls.Server["setSecureContext"];
+};
+
+/**
+ * @public
  * Synchronize certificates with a TLS server.
  * @param certs - Object with paths to certificate files.
- * @param server - Any interface that satisfies {setSecureContext: (opts: tls.SecureContextOptions) => void}
+ * @param server - Any interface that satisfies `SetSecureContextInterface`.
+ * @example
+ * ```ts
+ * const server = https.createServer();
+ * syncCerts({
+ *  ca: "/path/to/ca.pem",
+ * key: "/path/to/key.pem",
+ * cert: "/path/to/cert.pem"
+ * }, server);
+ * ```
  */
 export function syncCerts(
   certs: Record<"ca" | "key" | "cert", string>,
-  server: { setSecureContext: SetSecureContextFn },
+  server: SetSecureContextInterface,
   opts: LoadCertsOptions = {}
 ) {
   load(
