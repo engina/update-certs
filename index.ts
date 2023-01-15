@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import { debounce } from 'debounce';
-import chokidar from 'chokidar';
+import * as fs from "fs";
+import { debounce } from "debounce";
+import chokidar from "chokidar";
 
 interface LoadCertsOptions {
   debounceTime?: number;
@@ -22,12 +22,14 @@ export const DEFAULT_TIMEOUT_MS = 300;
  * @param opts.timeout - Timeout for overall loading.
  * @returns Promise that resolves to true when certificates are loaded.
  * @throws Error when some certificates fail loading.
- **/
+ */
 export function load<T extends Record<string, string>>(
   certFiles: T,
   cb: (err: Error | null, certs: { [key in keyof T]: Buffer } | null) => void,
-  opts: LoadCertsOptions = {}) {
-  const { debounceTime = DEFAULT_DEBOUNCE_MS, timeout = DEFAULT_TIMEOUT_MS } = opts;
+  opts: LoadCertsOptions = {}
+) {
+  const { debounceTime = DEFAULT_DEBOUNCE_MS, timeout = DEFAULT_TIMEOUT_MS } =
+    opts;
   const certs: { [key in keyof T]?: Buffer } = {};
   const debounced = debounce(cb, debounceTime);
   const certKeys: (keyof T)[] = Object.keys(certFiles);
@@ -36,13 +38,20 @@ export function load<T extends Record<string, string>>(
   let rejected = false;
   setTimeout(() => {
     if (Object.keys(certs).length !== certKeys.length) {
-      const missing = certKeys.filter((key) => certs[key] === undefined).map((key) => certFiles[key]);
+      const missing = certKeys
+        .filter((key) => certs[key] === undefined)
+        .map((key) => certFiles[key]);
       rejected = true;
-      return cb(new Error(`Timeout. Files that could not be loaded: ${missing.join(', ')}`), null);
+      return cb(
+        new Error(
+          `Timeout. Files that could not be loaded: ${missing.join(", ")}`
+        ),
+        null
+      );
     }
   }, timeout);
 
-  watcher.on('all', (_event, path) => {
+  watcher.on("all", (_event, path) => {
     fs.readFile(path, (err, buf) => {
       if (rejected || err) {
         return;
@@ -57,16 +66,22 @@ export function load<T extends Record<string, string>>(
   });
 }
 
-
-import * as tls from 'tls';
-export type SetSecureContextFn = tls.Server['setSecureContext'];
+import * as tls from "tls";
+export type SetSecureContextFn = tls.Server["setSecureContext"];
 
 /**
  * Synchronize certificates with a TLS server.
  * @param certs - Object with paths to certificate files.
  * @param server - Any interface that satisfies {setSecureContext: (opts: tls.SecureContextOptions) => void}
- **/
-export function syncCerts(certs: Record<'ca' | 'key' | 'cert', string>, server: { setSecureContext: SetSecureContextFn; }, opts: LoadCertsOptions = {}) {
-  load(certs, (_err, certs) => certs !== null && server.setSecureContext(certs), opts);
+ */
+export function syncCerts(
+  certs: Record<"ca" | "key" | "cert", string>,
+  server: { setSecureContext: SetSecureContextFn },
+  opts: LoadCertsOptions = {}
+) {
+  load(
+    certs,
+    (_err, certs) => certs !== null && server.setSecureContext(certs),
+    opts
+  );
 }
-

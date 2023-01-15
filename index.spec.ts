@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { DEFAULT_DEBOUNCE_MS, DEFAULT_TIMEOUT_MS, load, syncCerts } from './certs';
+import { DEFAULT_DEBOUNCE_MS, DEFAULT_TIMEOUT_MS, load, syncCerts } from '.';
 
 import chokidar from 'chokidar';
 import * as fs from 'fs';
@@ -25,7 +25,7 @@ beforeEach(() => {
   delayFs = 0;
 
   let watched: string[] = [];
-  ch.watch.mockImplementation((paths: string[], opts, cb) => {
+  ch.watch.mockImplementation((paths: string[]) => {
     watched = paths;
     return ch.FSWatcher;
   });

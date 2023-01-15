@@ -1,15 +1,26 @@
 {
-  "name": "ts-scope",
+  "name": "update-certs",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Update TLS servers certificates without downtime",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "format": "prettier --write \"index.ts\"",
+    "lint": "eslint",
+    "version": "npm run format && git add -A .",
+    "postversion": "git push && git push --tags"
   },
-  "types": "index.d.ts",
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Engin Aydogan",
+  "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.20.12",
     "@babel/preset-env": "^7.20.2",
@@ -23,7 +34,9 @@
     "babel-jest": "^29.3.1",
     "eslint": "^8.32.0",
     "jest": "^29.3.1",
-    "ts-node": "^10.9.1"
+    "prettier": "^2.8.3",
+    "ts-node": "^10.9.1",
+    "tslint-config-prettier": "^1.18.0"
   },
   "dependencies": {
     "chokidar": "^3.5.3",
